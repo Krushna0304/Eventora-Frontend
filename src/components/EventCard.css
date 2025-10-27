@@ -1,0 +1,42 @@
+.event-card {
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.event-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.event-title {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.event-category {
+  font-size: 0.8rem;
+  color: #555;
+  background: #f3f6ff;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.event-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  color: #444;
+}
+
+.event-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #666;
+}
