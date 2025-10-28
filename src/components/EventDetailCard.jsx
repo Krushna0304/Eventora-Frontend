@@ -133,9 +133,55 @@ const EventDetailCard = () => {
 
   const getRegistrationButton = () => {
     if (!event) return null;
-    
+
     const status = event.userRegistrationStatus || 'NONE';
-    
+    const eventState = (event.eventStatus || '').toUpperCase();
+
+    // Only allow new registrations when the event is in SCHEDULED state.
+    // If event is not SCHEDULED, show the event state as a disabled button.
+    // Preserve cancel behavior for users who are already REGISTERED.
+    if (eventState !== 'SCHEDULED') {
+      if (status === 'REGISTERED') {
+        return (
+          <button 
+            className="registration-button registered"
+            onClick={() => setDialogProps({
+              isOpen: true,
+              message: 'Are you sure you want to cancel your registration for this event?',
+              isConfirm: true,
+              onConfirm: handleUnregister
+            })}
+            disabled={registering}
+          >
+            {registering ? 'Cancelling...' : 'Cancel Registration'}
+          </button>
+        );
+      }
+
+      if (status === 'CANCELLED') {
+        return (
+          <button 
+            className="registration-button cancelled"
+            onClick={() => setDialogProps({
+              isOpen: true,
+              message: 'You can only register for an event once. This event was previously cancelled.'
+            })}
+            disabled
+          >
+            Cancelled
+          </button>
+        );
+      }
+
+      const pretty = eventState ? eventState.charAt(0).toUpperCase() + eventState.slice(1).toLowerCase() : 'Unavailable';
+      return (
+        <button className="registration-button cancelled" disabled>
+          {pretty}
+        </button>
+      );
+    }
+
+    // eventState is SCHEDULED -> follow the previous registration logic
     switch (status) {
       case 'REGISTERED':
         return (

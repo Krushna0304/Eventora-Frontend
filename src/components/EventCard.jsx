@@ -18,10 +18,8 @@ const EventCard = ({ event, fromOrganiser = false, fromHomeView = '' }) => {
 
   const formattedDate = startDate ? new Date(startDate).toLocaleString() : 'TBA';
 
-  let eventLink = `/events/${id}`;
-  if (fromOrganiser) {
-    eventLink += '?from=organiser';
-  } else if (fromHomeView) {
+  let eventLink = fromOrganiser ? `/organiser/events/${id}` : `/events/${id}`;
+  if (!fromOrganiser && fromHomeView) {
     // fromHomeView expected values: 'my' or 'all'
     eventLink += `?from=home&view=${encodeURIComponent(fromHomeView)}`;
   }

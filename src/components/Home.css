@@ -4,10 +4,11 @@
 
 .home-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  gap: 2rem;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
 }
 
 .view-toggle {
@@ -16,13 +17,14 @@
 }
 
 .toggle-button {
-  padding: 8px 16px;
-  border: 1px solid #1976d2;
-  background: white;
-  color: #1976d2;
-  border-radius: 4px;
+  padding: 8px 14px;
+  border: 1px solid rgba(26,60,255,0.15);
+  background: linear-gradient(90deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9));
+  color: var(--accent);
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s ease;
+  font-weight: 600;
 }
 
 .toggle-button.active {
@@ -39,45 +41,50 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  min-width: 220px;
 }
 
 .search-input {
   width: 100%;
-  max-width: 600px;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
+  max-width: 680px;
+  padding: 10px 14px;
+  border: 1px solid rgba(15,23,42,0.06);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 6px 18px rgba(17,24,39,0.04);
 }
 
+
 .home-body {
-  display: flex;
+  display: grid;
+  grid-template-columns: 280px 1fr;
   gap: 1rem;
 }
 
 .home-filters {
-  width: 260px;
-  background: #fff;
-  border-radius: 8px;
+  width: 100%;
+  background: var(--card);
+  border-radius: 12px;
   padding: 1rem;
-  border: 1px solid #eee;
+  border: 1px solid rgba(15,23,42,0.04);
+  box-shadow: 0 6px 18px rgba(17,24,39,0.03);
 }
 
 .home-list {
-  flex: 1;
   padding: 0 1rem;
 }
 
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
 
 .info {
   padding: 1rem;
-  background: #f6f8fa;
-  border-radius: 6px;
+  background: linear-gradient(180deg, #fff, #fbfdff);
+  border-radius: 10px;
 }
 
 .error-message {
@@ -90,17 +97,18 @@
 
 /* Profile Button Styles */
 .profile-button {
-  background: none;
-  border: 1px solid #ddd;
+  background: white;
+  border: 1px solid rgba(15,23,42,0.06);
   padding: 8px;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s;
+  transition: transform 0.12s ease, box-shadow 0.12s;
+  box-shadow: 0 4px 12px rgba(17,24,39,0.03);
 }
 
 .profile-button:hover {
@@ -108,14 +116,20 @@
 }
 
 .profile-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: #e0e0e0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  font-weight: 500;
-  color: #666;
+  font-weight: 700;
+  color: white;
+}
+
+@media (max-width: 900px) {
+  .home-body { grid-template-columns: 1fr; }
+  .home-filters { order: 2; }
+  .home-list { order: 1; }
 }

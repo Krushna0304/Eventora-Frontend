@@ -55,3 +55,22 @@
 .dialog-buttons button.cancel:hover {
   background-color: #5a6268;
 }
+
+/* JSON / verbose output area */
+.dialog-pre {
+  text-align: left;
+  background: #0f172a;
+  color: #e6eef8;
+  padding: 12px;
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+  font-size: 13px;
+  max-height: 60vh;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+@media (max-width: 520px) {
+  .dialog-content { width: calc(100% - 32px); min-width: auto; }
+}

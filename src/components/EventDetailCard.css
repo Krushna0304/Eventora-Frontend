@@ -5,85 +5,75 @@
   margin-bottom: 1rem;
 }
 .back-link {
-  color: #007bff;
+  color: var(--accent);
   text-decoration: none;
+  font-weight: 600;
 }
 .event-detail {
   display: flex;
-  gap: 1rem;
+  gap: 1.25rem;
   align-items: flex-start;
-  background: #fff;
-  padding: 1rem;
-  border-radius: 8px;
-  border: 1px solid #eee;
+  background: var(--card);
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid rgba(15,23,42,0.04);
+  box-shadow: 0 10px 30px rgba(17,24,39,0.03);
 }
 .image-wrap img {
-  width: 320px;
-  height: 220px;
+  width: 360px;
+  height: 240px;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 10px;
 }
 .detail-main {
   flex: 1;
 }
 .title {
   margin: 0 0 0.5rem 0;
+  font-size: 1.45rem;
 }
 .meta-row, .location-row, .dates-row, .participants-row {
   display: flex;
   gap: 1rem;
   margin-bottom: 0.5rem;
-  color: #444;
+  color: var(--muted);
 }
 .tags { margin: 0.5rem 0; }
 .tag {
   display: inline-block;
-  background: #f3f6ff;
-  padding: 4px 8px;
+  background: rgba(26,60,255,0.06);
+  padding: 6px 10px;
   margin-right: 6px;
-  border-radius: 4px;
+  border-radius: 999px;
+  color: var(--muted);
 }
-.description { margin-top: 1rem; }
+.description { margin-top: 1rem; color: #111827; line-height: 1.5; }
 .registration-section {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid #eee;
+  border-top: 1px solid rgba(15,23,42,0.03);
 }
 
 .registration-button {
   margin-top: 1rem;
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 4px;
-  font-weight: 600;
+  border-radius: 8px;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.18s;
 }
 
-.registration-button.register {
-  background-color: #28a745;
-  color: white;
-}
+.registration-button.register { background-color: #10b981; color: white; }
+.registration-button.register:hover:not(:disabled) { background-color: #059669; }
+.registration-button.registered { background-color: #6b7280; color: white; cursor: default; }
+.registration-button.cancelled { background-color: #ef4444; color: white; }
+.registration-button:disabled { opacity: 0.75; cursor: not-allowed; }
 
-.registration-button.register:hover:not(:disabled) {
-  background-color: #218838;
-}
+.info { padding: 1rem; background: linear-gradient(180deg,#fff,#fbfdff); border-radius: 8px; }
+.error-message { padding: 0.75rem; background: #fff7f7; border-radius: 8px; color: #b91c1c; }
 
-.registration-button.registered {
-  background-color: #6c757d;
-  color: white;
-  cursor: default;
+@media (max-width: 880px) {
+  .event-detail { flex-direction: column; }
+  .image-wrap img { width: 100%; height: auto; }
 }
-
-.registration-button.cancelled {
-  background-color: #dc3545;
-  color: white;
-}
-
-.registration-button:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.info { padding: 1rem; background: #f6f8fa; border-radius: 6px; }
-.error-message { padding: 0.75rem; background: #fff0f0; border-radius: 6px; color: #a00000; }

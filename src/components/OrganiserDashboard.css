@@ -1,97 +1,63 @@
 .organiser-root {
   padding: 2rem;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  min-height: 100vh;
+  color: #1a237e;
+  font-family: 'Inter', sans-serif;
 }
 
+/* ---- Header ---- */
 .organiser-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
+  padding: 1rem 1.5rem;
+  margin-bottom: 1.5rem;
+  border-radius: 12px;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.view-toggle {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.toggle-button {
-  padding: 8px 16px;
-  border: 1px solid #1976d2;
-  background: white;
-  color: #1976d2;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.toggle-button.active {
-  background: #1976d2;
-  color: white;
-}
-
-.toggle-button:hover {
-  background: #1976d2;
-  color: white;
-}
-
-.home-button {
-  padding: 8px 16px;
-  background: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.home-button:hover {
-  background: #388e3c;
+.dashboard-title {
+  font-size: 1.8rem;
+  font-weight: 700;
 }
 
 .organiser-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.8rem;
 }
 
-.search-input {
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-width: 220px;
+/* ---- Buttons ---- */
+button {
+  border: none;
+  cursor: pointer;
+  transition: 0.25s ease;
 }
 
 .launch-button {
-  padding: 8px 12px;
   background: #1976d2;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 .launch-button:hover {
-  background: #125ea8;
-}
-
-.organiser-body {
-  margin-top: 1.5rem;
+  background: #1565c0;
+  transform: scale(1.05);
 }
 
 .ml-button {
-  padding: 8px 12px;
   background: #ff9800;
   color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.ml-button:hover {
+  background: #fb8c00;
+  transform: scale(1.05);
 }
 
 .ml-button:disabled {
@@ -99,26 +65,103 @@
   cursor: not-allowed;
 }
 
+/* ---- Search ---- */
+.search-input {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  min-width: 220px;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #1976d2;
+  box-shadow: 0 0 6px rgba(25, 118, 210, 0.4);
+  outline: none;
+}
+
+/* ---- Profile ---- */
+.profile-button {
+  background: white;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #1976d2;
+  border: 2px solid #1976d2;
+  transition: 0.3s ease;
+}
+
+.profile-button:hover {
+  background: #1976d2;
+  color: white;
+  transform: scale(1.1);
+}
+
+/* ---- Event Grid ---- */
+.organiser-body {
+  margin-top: 1.5rem;
+}
+
+.welcome-text {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  color: #283593;
+}
+
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+/* ---- Event Card Wrapper ---- */
 .event-with-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 1rem;
+  border-radius: 12px;
 }
 
 .event-actions {
   display: flex;
-  gap: 8px;
+  justify-content: space-around;
 }
 
 .event-actions button {
-  padding: 6px 10px;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  background: #fff;
-  cursor: pointer;
+  background: white;
+  border: 1px solid #1976d2;
+  color: #1976d2;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
 }
 
-.event-actions button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.event-actions button:hover {
+  background: #1976d2;
+  color: white;
+  transform: scale(1.05);
+}
+
+/* ---- Info and Error ---- */
+.info {
+  text-align: center;
+  color: #555;
+}
+
+.error-message {
+  color: #d32f2f;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* ---- Glass Effect ---- */
+.glass-card {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }

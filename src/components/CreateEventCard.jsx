@@ -3,13 +3,16 @@ import axios from 'axios';
 import './CreateEventCard.css';
 import { useNavigate } from 'react-router-dom';
 
-const CREATE_ENDPOINT = 'http://localhost:8080/public/api/events/create'; // adjust if your backend path differs
+const CREATE_ENDPOINT = 'http://localhost:8080/public/api/events/create';
+const UPDATE_ENDPOINT = 'http://localhost:8080/public/api/events/update';
 
-const emptyTags = [''];
-
-const CreateEventCard = () => {
+const CreateEventCard = ({ event }) => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState(event ? {
+    ...event,
+    startDate: event.startDate ? new Date(event.startDate).toISOString().slice(0, 16) : '',
+    endDate: event.endDate ? new Date(event.endDate).toISOString().slice(0, 16) : '',
+  } : {
     title: '',
     description: '',
     eventCategory: '',
@@ -59,26 +62,15 @@ const CreateEventCard = () => {
     setError('');
     setSuccessMessage('');
 
-    // Build payload mapping to CreateEventDto record
     const payload = {
-      title: form.title || undefined,
-      description: form.description || undefined,
-      eventCategory: form.eventCategory || undefined,
-      locationName: form.locationName || undefined,
-      city: form.city || undefined,
-      state: form.state || undefined,
-      country: form.country || undefined,
+      ...form,
       latitude: form.latitude ? Number(form.latitude) : undefined,
       longitude: form.longitude ? Number(form.longitude) : undefined,
-      startDate: form.startDate ? form.startDate : undefined,
-      endDate: form.endDate ? form.endDate : undefined,
       maxParticipants: form.maxParticipants ? Number(form.maxParticipants) : undefined,
       price: form.price ? Number(form.price) : undefined,
-      imageUrl: form.imageUrl || undefined,
-      tags: Array.isArray(form.tags) ? form.tags.filter(Boolean) : undefined,
-      eventStatus: form.eventStatus || undefined,
       promotionSpend: form.promotionSpend ? Number(form.promotionSpend) : undefined,
-      socialMentions: form.socialMentions ? Number(form.socialMentions) : undefined
+      socialMentions: form.socialMentions ? Number(form.socialMentions) : undefined,
+      tags: Array.isArray(form.tags) ? form.tags.filter(Boolean) : undefined,
     };
 
     setLoading(true);
@@ -89,23 +81,28 @@ const CreateEventCard = () => {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       };
 
-      const resp = await axios.post(CREATE_ENDPOINT, payload, {
-        headers,
-        validateStatus: (s) => s >= 200 && s < 400,
-      });
-
-      setSuccessMessage('Event created successfully');
-      // Optionally navigate to organiser dashboard or event detail
-      const created = resp.data;
-      if (created && created.id) {
-        // navigate to the event detail and indicate we came from organiser dashboard
-        navigate(`/events/${created.id}?from=organiser`);
+      let resp;
+      if (event?.id) {
+        // Update existing event
+        resp = await axios.post(`${UPDATE_ENDPOINT}/${event.id}`, payload, {
+          headers,
+          validateStatus: (s) => s >= 200 && s < 400,
+        });
+        setSuccessMessage('Event updated successfully');
       } else {
-        // fallback to organiser dashboard
-        navigate(`/organiser`);
+        // Create new event
+        resp = await axios.post(CREATE_ENDPOINT, payload, {
+          headers,
+          validateStatus: (s) => s >= 200 && s < 400,
+        });
+        setSuccessMessage('Event created successfully');
       }
+      
+      const resultEvent = resp.data;
+      if (resultEvent?.id) navigate(`/organiser/events/${resultEvent.id}`);
+      else navigate('/organiser');
     } catch (err) {
-      console.error('Error creating event:', err?.message ?? err);
+      console.error('Error creating event:', err);
       const msg = err?.response?.data?.message ?? err?.response?.data ?? err?.message ?? 'Failed to create event';
       setError(typeof msg === 'object' ? JSON.stringify(msg) : String(msg));
     } finally {
@@ -116,11 +113,12 @@ const CreateEventCard = () => {
   return (
     <div className="create-event-root">
       <form className="create-event-form" onSubmit={handleSubmit}>
-        <h3>Create Event</h3>
+        <h3>{event ? 'Update Event Info' : 'Create Event'}</h3>
 
         {error && <div className="error-message">{error}</div>}
         {successMessage && <div className="success-message">{successMessage}</div>}
 
+        {/* Title and Description */}
         <div className="form-row">
           <label>Title</label>
           <input name="title" value={form.title} onChange={handleChange} required />
@@ -131,20 +129,21 @@ const CreateEventCard = () => {
           <textarea name="description" value={form.description} onChange={handleChange} rows={4} />
         </div>
 
+        {/* Category and Image */}
         <div className="form-row two-col">
           <div>
             <label>Category</label>
             <select name="eventCategory" value={form.eventCategory} onChange={handleChange} required>
               <option value="">Select category</option>
-              <option value="EDUCATION">Education - Tech talks, workshops, seminars</option>
-              <option value="HEALTH">Health - Blood donation, yoga, wellness</option>
-              <option value="SPORTS">Sports - Tournaments, marathons, fitness</option>
-              <option value="CULTURE">Culture - Festivals, art shows, cultural</option>
-              <option value="MUSIC">Music - Concerts, performances, gigs</option>
-              <option value="COMMUNITY">Community - Meetups, volunteer work</option>
-              <option value="BUSINESS">Business - Startup meetups, networking</option>
-              <option value="ENTERTAINMENT">Entertainment - Movies, parties, shows</option>
-              <option value="OTHER">Other - Uncategorized events</option>
+              <option value="EDUCATION">Education</option>
+              <option value="HEALTH">Health</option>
+              <option value="SPORTS">Sports</option>
+              <option value="CULTURE">Culture</option>
+              <option value="MUSIC">Music</option>
+              <option value="COMMUNITY">Community</option>
+              <option value="BUSINESS">Business</option>
+              <option value="ENTERTAINMENT">Entertainment</option>
+              <option value="OTHER">Other</option>
             </select>
           </div>
 
@@ -154,6 +153,7 @@ const CreateEventCard = () => {
           </div>
         </div>
 
+        {/* Location */}
         <div className="form-row two-col">
           <div>
             <label>Location name</label>
@@ -176,6 +176,7 @@ const CreateEventCard = () => {
           </div>
         </div>
 
+        {/* Coordinates */}
         <div className="form-row two-col">
           <div>
             <label>Latitude</label>
@@ -187,6 +188,7 @@ const CreateEventCard = () => {
           </div>
         </div>
 
+        {/* Dates */}
         <div className="form-row two-col">
           <div>
             <label>Starts</label>
@@ -198,6 +200,7 @@ const CreateEventCard = () => {
           </div>
         </div>
 
+        {/* Participants and Price */}
         <div className="form-row two-col">
           <div>
             <label>Max participants</label>
@@ -209,32 +212,32 @@ const CreateEventCard = () => {
           </div>
         </div>
 
+        {/* Tags */}
         <div className="form-row">
           <label>Tags</label>
           <div className="tags">
             {(form.tags || []).map((t, i) => (
               <div key={i} className="tag-item">
                 <input value={t} onChange={(e) => handleTagsChange(i, e.target.value)} />
-                <button type="button" onClick={() => removeTag(i)}>Remove</button>
+                <button type="button" onClick={() => removeTag(i)}>×</button>
               </div>
             ))}
-            <div>
-              <button type="button" onClick={addTag}>Add tag</button>
-            </div>
+            <button type="button" onClick={addTag}>+ Add Tag</button>
           </div>
         </div>
 
+        {/* Status, Promotion, Mentions */}
         <div className="form-row two-col">
           <div>
             <label>Event status</label>
             <select name="eventStatus" value={form.eventStatus} onChange={handleChange} required>
               <option value="">Select status</option>
-              <option value="UPCOMING">Upcoming - Future event</option>
-              <option value="ONGOING">Ongoing - Currently running</option>
-              <option value="COMPLETED">Completed - Past event</option>
-              <option value="CANCELLED">Cancelled - Not happening</option>
-              <option value="DRAFT">Draft - Not yet published</option>
-              <option value="PUBLISHED">Published - Visible to all</option>
+              <option value="UPCOMING">Upcoming</option>
+              <option value="ONGOING">Ongoing</option>
+              <option value="COMPLETED">Completed</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="DRAFT">Draft</option>
+              <option value="SCHEDULED">Schedule</option>
             </select>
           </div>
           <div>
@@ -248,12 +251,11 @@ const CreateEventCard = () => {
             <label>Social mentions</label>
             <input name="socialMentions" type="number" value={form.socialMentions} onChange={handleChange} />
           </div>
-          <div>
-            <label>&nbsp;</label>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button type="button" className="cancel-button" onClick={() => navigate('/organiser')} disabled={loading}>Cancel</button>
-              <button type="submit" className="submit-button" disabled={loading}>{loading ? 'Creating...' : 'Create Event'}</button>
-            </div>
+          <div style={{ display: 'flex', alignItems: 'end', justifyContent: 'flex-end', gap: '10px' }}>
+            <button type="button" className="cancel-button" onClick={() => navigate('/organiser')} disabled={loading}>Cancel</button>
+            <button type="submit" className="submit-button" disabled={loading}>
+              {loading ? (event ? 'Updating...' : 'Creating...') : (event ? 'Confirm' : 'Create Event')}
+            </button>
           </div>
         </div>
       </form>

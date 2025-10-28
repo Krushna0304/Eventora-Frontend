@@ -17,45 +17,70 @@ const Login = () => {
 
     // Handle OAuth Callback
     useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const code = params.get('code');
+        
+        if (!code) return;
+
+        // Determine provider from pathname (e.g., "/auth/google/callback")
+        const pathMatch = location.pathname.match(/\/auth\/(\w+)\/callback/);
+        
+        if (!pathMatch) {
+            console.error('Invalid OAuth callback path:', location.pathname);
+            return;
+        }
+
+        const provider = pathMatch[1]; // Extract provider name (google, github, linkedin)
+
+        // Prevent multiple calls by checking if already processing
+        const isProcessing = sessionStorage.getItem('oauth_processing');
+        if (isProcessing === 'true') {
+            console.log('OAuth already processing, skipping...');
+            return;
+        }
+
         const handleOAuthCallback = async () => {
-            const params = new URLSearchParams(location.search);
-            const code = params.get('code');
-            
-            if (!code) return;
-
-            // Determine provider from pathname
-            const pathParts = location.pathname.split('/');
-            const provider = pathParts[2]; // e.g., "google" from "/auth/google/callback"
-
-            if (!provider) return;
-
+            sessionStorage.setItem('oauth_processing', 'true');
             setLoading(true);
             setError('');
 
             try {
-                // Send code to backend
+                // Send code to backend - endpoint should match provider name
                 const response = await axios.get(`http://localhost:8080/auth/${provider}/code`, {
-                    params: { code }
+                    params: { code },
+                    timeout: 10000 // 10 second timeout
                 });
 
                 const token = response.data?.token;
                 
                 if (token) {
                     localStorage.setItem('eventora_token', token);
-                    navigate('/home');
+                    sessionStorage.removeItem('oauth_processing');
+                    // Clear the OAuth params from URL before navigating
+                    navigate('/home', { replace: true });
                 } else {
                     setError('Authentication failed. No token received.');
+                    sessionStorage.removeItem('oauth_processing');
+                    // Navigate back to login after 3 seconds
+                    setTimeout(() => navigate('/login', { replace: true }), 3000);
                 }
             } catch (err) {
                 console.error('OAuth callback error:', err);
-                setError(err.response?.data?.message || 'OAuth authentication failed.');
+                const errorMessage = err.response?.data?.message || 
+                                   err.message || 
+                                   'OAuth authentication failed.';
+                setError(errorMessage);
+                sessionStorage.removeItem('oauth_processing');
+                // Navigate back to login after 3 seconds
+                setTimeout(() => navigate('/login', { replace: true }), 3000);
             } finally {
                 setLoading(false);
             }
         };
 
         handleOAuthCallback();
-    }, [location, navigate]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array - only run once on mount
 
     const handleChange = (e) => {
         const { name, value } = e.target;
