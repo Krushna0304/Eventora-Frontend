@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './EventDetailCard.css';
 import Dialog from './Dialog';
@@ -9,6 +9,7 @@ const REGISTRATION_BASE = 'http://localhost:8080/api/registrations';
 
 const EventDetailCard = () => {
   const { id } = useParams();
+  const location = useLocation();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -187,10 +188,24 @@ const EventDetailCard = () => {
     }
   };
 
+  // Determine back target based on query params (or location.state in future)
+  const qs = new URLSearchParams(location.search);
+  const fromParam = qs.get('from');
+  const viewParam = qs.get('view');
+
+  let backTarget = '/home';
+  if (fromParam === 'organiser') {
+    backTarget = '/organiser';
+  } else if (fromParam === 'home') {
+    // If view is 'my' go back to home with view=my so Home can restore My Events
+    if (viewParam === 'my') backTarget = '/home?view=my';
+    else backTarget = '/home';
+  }
+
   return (
     <div className="event-detail-root">
       <div className="detail-header">
-        <Link to="/home" className="back-link">◀ Back</Link>
+        <Link to={backTarget} className="back-link">◀ Back</Link>
       </div>
 
       {loading && <div className="info">Loading event...</div>}

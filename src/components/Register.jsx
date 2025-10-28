@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import './Register.css';
 import { Button, Input, InputAdornment, IconButton } from '@mui/material';
@@ -17,66 +17,84 @@ const Register = () => {
     });
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
+
     const navigate = useNavigate();
+    const location = useLocation();
 
-        // Handle OAuth callback
-        const location = useLocation();
-        useEffect(() => {
-            const query = new URLSearchParams(location.search);
-            const code = query.get('code');
-            const error = query.get('error');
+    // ✅ Handle OAuth Callback
+    useEffect(() => {
+        const handleOAuthCallback = async () => {
+            const params = new URLSearchParams(location.search);
+            const code = params.get('code');
 
-            if (error) {
-                setError('Authentication failed. Please try again.');
-                return;
-            }
+            if (!code) return;
 
-            if (code) {
-                handleOAuthCallback(code);
-            }
-        }, [location]);
+            // Determine provider from pathname (e.g., /auth/google/callback)
+            const pathParts = location.pathname.split('/');
+            const provider = pathParts[2];
 
-        const handleOAuthCallback = async (code) => {
+            if (!provider) return;
+
+            setLoading(true);
+            setError('');
+
             try {
-                const provider = location.pathname.split('/')[2];
-                const response = await axios.get(`http://localhost:8080/auth/${provider}/code?code=${code}`);
-            
-                if (response.status === 200 && response.data.token) {
-                    localStorage.setItem('eventora_token', response.data.token);
+                const response = await axios.get(`http://localhost:8080/auth/${provider}/code`, {
+                    params: { code }
+                });
+
+                const token = response.data?.token;
+
+                if (token) {
+                    localStorage.setItem('eventora_token', token);
                     navigate('/home');
+                } else {
+                    setError('Authentication failed. No token received.');
                 }
             } catch (err) {
                 console.error('OAuth callback error:', err);
-                setError('Failed to complete authentication. Please try again.');
+                setError(err.response?.data?.message || 'OAuth authentication failed.');
+            } finally {
+                setLoading(false);
             }
         };
+
+        handleOAuthCallback();
+    }, [location, navigate]);
+
+    // ✅ Handle input change
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    // ✅ Handle registration
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
         try {
             const response = await axios.post('http://localhost:8080/public/api/create-user', formData);
-            if (response.status === 201) navigate('/login');
-        } catch (error) {
-            console.error('Registration error:', error);
-            let serverMsg = error?.response?.data?.message ?? error?.response?.data ?? error?.message ?? '';
-            const status = error?.response?.status;
 
-            if (!serverMsg) {
-                if (status === 409) serverMsg = 'User already exists. Try logging in or use a different email.';
-                else if (status === 400) serverMsg = 'Invalid registration data. Please check your inputs.';
-                else serverMsg = 'Registration failed. Please try again.';
+            if (response.status === 201) {
+                navigate('/login');
+            }
+        } catch (err) {
+            console.error('Registration error:', err);
+            let msg = err?.response?.data?.message ?? '';
+            const status = err?.response?.status;
+
+            if (!msg) {
+                if (status === 409) msg = 'User already exists. Try logging in or use a different email.';
+                else if (status === 400) msg = 'Invalid registration data. Please check your inputs.';
+                else msg = 'Registration failed. Please try again.';
             }
 
-            setError(serverMsg);
+            setError(msg);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -84,7 +102,9 @@ const Register = () => {
         <div className="register-container">
             <div className="register-box">
                 <h2>Create an Account</h2>
+
                 {error && <div className="error-message">{error}</div>}
+                {loading && <div className="loading-message">Processing...</div>}
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
@@ -96,6 +116,7 @@ const Register = () => {
                             onChange={handleChange}
                             required
                             fullWidth
+                            disabled={loading}
                         />
                     </div>
 
@@ -109,6 +130,7 @@ const Register = () => {
                             onChange={handleChange}
                             required
                             fullWidth
+                            disabled={loading}
                         />
                     </div>
 
@@ -117,14 +139,19 @@ const Register = () => {
                         <Input
                             id="password"
                             name="password"
-                            type={showPassword ? "text" : "password"}
+                            type={showPassword ? 'text' : 'password'}
                             value={formData.password}
                             onChange={handleChange}
                             required
                             fullWidth
+                            disabled={loading}
                             endAdornment={
                                 <InputAdornment position="end">
-                                    <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                                    <IconButton
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        edge="end"
+                                        disabled={loading}
+                                    >
                                         {showPassword ? <VisibilityOff /> : <Visibility />}
                                     </IconButton>
                                 </InputAdornment>
@@ -132,41 +159,53 @@ const Register = () => {
                         />
                     </div>
 
-                    <Button type="submit" className="submit-button" fullWidth>Register</Button>
+                    <Button
+                        type="submit"
+                        className="submit-button"
+                        fullWidth
+                        disabled={loading}
+                    >
+                        {loading ? 'Registering...' : 'Register'}
+                    </Button>
                 </form>
 
-                    <div className="social-login">
-                        <div className="divider">
-                            <span>OR</span>
-                        </div>
-                        <Button
-                            variant="outlined"
-                            startIcon={<GoogleIcon />}
-                            onClick={initiateGoogleLogin}
-                            fullWidth
-                            style={{ marginBottom: '10px' }}
-                        >
-                            Sign up with Google
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            startIcon={<GitHubIcon />}
-                            onClick={initiateGithubLogin}
-                            fullWidth
-                            style={{ marginBottom: '10px' }}
-                        >
-                            Sign up with GitHub
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            startIcon={<LinkedInIcon />}
-                            onClick={initiateLinkedInLogin}
-                            fullWidth
-                            style={{ marginBottom: '10px' }}
-                        >
-                            Sign up with LinkedIn
-                        </Button>
-                    </div>
+                <div className="social-login">
+                    <div className="divider"><span>OR</span></div>
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<GoogleIcon />}
+                        onClick={initiateGoogleLogin}
+                        fullWidth
+                        style={{ marginBottom: '10px' }}
+                        disabled={loading}
+                    >
+                        Sign up with Google
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<GitHubIcon />}
+                        onClick={initiateGithubLogin}
+                        fullWidth
+                        style={{ marginBottom: '10px' }}
+                        disabled={loading}
+                    >
+                        Sign up with GitHub
+                    </Button>
+
+                    <Button
+                        variant="outlined"
+                        startIcon={<LinkedInIcon />}
+                        onClick={initiateLinkedInLogin}
+                        fullWidth
+                        style={{ marginBottom: '10px' }}
+                        disabled={loading}
+                    >
+                        Sign up with LinkedIn
+                    </Button>
+                </div>
+
                 <p className="login-link">
                     Already have an account? <a href="/login">Login here</a>
                 </p>

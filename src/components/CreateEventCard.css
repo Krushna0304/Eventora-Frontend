@@ -1,0 +1,87 @@
+.create-event-root {
+  padding: 1rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.create-event-form {
+  background: #0b24c6;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.create-event-form h3 {
+  margin-top: 0;
+}
+
+.form-row {
+  margin-bottom: 12px;
+}
+
+.form-row label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.form-row input,
+.form-row textarea,
+.form-row select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tag-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.submit-button {
+  background: #1976d2;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-button {
+  background: #f5f5f5;
+  color: #333;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-message {
+  background: #fff0f0;
+  padding: 8px;
+  border-radius: 4px;
+  color: #a00000;
+  margin-bottom: 8px;
+}
+
+.success-message {
+  background: #f0fff4;
+  padding: 8px;
+  border-radius: 4px;
+  color: #1b5e20;
+  margin-bottom: 8px;
+}

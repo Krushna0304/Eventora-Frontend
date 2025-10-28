@@ -7,6 +7,32 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  gap: 2rem;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.toggle-button {
+  padding: 8px 16px;
+  border: 1px solid #1976d2;
+  background: white;
+  color: #1976d2;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toggle-button.active {
+  background: #1976d2;
+  color: white;
+}
+
+.toggle-button:hover {
+  background: #1976d2;
+  color: white;
 }
 
 .search-row {
@@ -60,4 +86,36 @@
   border: 1px solid #ffd0d0;
   color: #a00000;
   border-radius: 6px;
+}
+
+/* Profile Button Styles */
+.profile-button {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 8px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+}
+
+.profile-button:hover {
+  background-color: #f0f0f0;
+}
+
+.profile-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
 }

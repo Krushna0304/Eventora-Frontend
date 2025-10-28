@@ -5,6 +5,8 @@ import Register from './components/Register';
 import Home from './components/Home';
 import './App.css'
 import EventDetailCard from './components/EventDetailCard';
+import OrganiserDashboard from './components/OrganiserDashboard';
+import CreateEventCard from './components/CreateEventCard';
 
 function App() {
   return (
@@ -20,6 +22,8 @@ function App() {
           <Route path="/auth/google/callback" element={<Login />} />
           <Route path="/auth/github/callback" element={<Login />} />
           <Route path="/auth/linkedin/callback" element={<Login />} />
+          <Route path="/organiser" element={<OrganiserDashboard />} />
+          <Route path="/create-event" element={<CreateEventCard />} />
         </Routes>
       </div>
     </Router>
