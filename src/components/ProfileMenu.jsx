@@ -16,9 +16,6 @@ const ProfileMenu = ({ isOpen, onClose, userInfo, onLogout, onSwitchToOrganizer,
         </div>
         
         <div className="profile-menu-items">
-          <button className="menu-item" onClick={onMyEvents}>
-            My Events
-          </button>
           <button className="menu-item" onClick={onSwitchToOrganizer}>
             {switchLabel}
           </button>

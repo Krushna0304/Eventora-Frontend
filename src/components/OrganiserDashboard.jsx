@@ -38,11 +38,17 @@ const OrganiserDashboard = () => {
       setError('');
       try {
         const token = localStorage.getItem('eventora_token');
+        const params = {
+          eventName: search.trim(),
+          page: 0,
+          size: 10
+        };
         const resp = await axios.get('http://localhost:8080/public/api/events/getByNameOrganiserByMe', {
+          params,
           headers: { Authorization: `Bearer ${token}` },
           validateStatus: (s) => s >= 200 && s < 400,
         });
-        setEvents(Array.isArray(resp.data) ? resp.data : []);
+        setEvents(Array.isArray(resp.data.content) ? resp.data.content : []);
       } catch (err) {
         setError('Could not load your events.');
       } finally {
@@ -50,7 +56,7 @@ const OrganiserDashboard = () => {
       }
     };
     fetchEvents();
-  }, []);
+  }, [search]);
 
   const buildAuthHeaders = () => {
     const token = localStorage.getItem('eventora_token');

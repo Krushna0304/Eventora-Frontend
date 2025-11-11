@@ -87,9 +87,11 @@ const Home = () => {
         const params = {
           eventName: search.trim(),
           organizerName: organizerSearch.trim(),
-          isMyEventList: isMyEventList
+          isMyEventList: isMyEventList,
+          page: 0, // You can make this dynamic if you add pagination controls
+          size: 10 // Or use a state variable for page size
         };
-        
+
         const token = localStorage.getItem('eventora_token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
@@ -100,8 +102,8 @@ const Home = () => {
         });
 
         const data = response.data;
-        if (Array.isArray(data)) {
-          setFilteredEvents(data);
+        if (Array.isArray(data.content)) {
+          setFilteredEvents(data.content);
         } else {
           setFilteredEvents([]);
         }

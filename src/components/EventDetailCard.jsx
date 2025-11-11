@@ -268,7 +268,7 @@ const EventDetailCard = () => {
           <div className="detail-main">
             <h2 className="title">{event.title}</h2>
             <div className="meta-row">
-              <div>Organizer: <strong>{event.organizerName || '—'}</strong></div>
+              <div>Organizer: <strong>{event.organizerDisplayName || '—'}</strong></div>
               <div>Category: {event.eventCategory || '—'}</div>
               <div>Status: {event.eventStatus || '—'}</div>
             </div>
