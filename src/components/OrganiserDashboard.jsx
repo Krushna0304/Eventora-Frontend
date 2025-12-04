@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import ProfileMenu from './ProfileMenu';
 import EventCard from './EventCard';
 import Dialog from './Dialog';
+import { authAPI, eventsAPI, mlAPI } from '../services/api';
+import { STORAGE_KEYS, PAGINATION } from '../config/constants';
 import './OrganiserDashboard.css';
 
 const OrganiserDashboard = () => {
@@ -19,14 +20,11 @@ const OrganiserDashboard = () => {
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-      const token = localStorage.getItem('eventora_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       if (!token) return;
       try {
-        const resp = await axios.get('http://localhost:8080/public/api/getUserInfo', {
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
-        setUserInfo(resp.data);
+        const data = await authAPI.getUserInfo();
+        setUserInfo(data);
       } catch (err) {
         console.error('Failed to fetch user info:', err);
       }
@@ -37,18 +35,13 @@ const OrganiserDashboard = () => {
       setLoading(true);
       setError('');
       try {
-        const token = localStorage.getItem('eventora_token');
         const params = {
           eventName: search.trim(),
-          page: 0,
-          size: 10
+          page: PAGINATION.DEFAULT_PAGE,
+          size: PAGINATION.DEFAULT_SIZE,
         };
-        const resp = await axios.get('http://localhost:8080/public/api/events/getByNameOrganiserByMe', {
-          params,
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
-        setEvents(Array.isArray(resp.data.content) ? resp.data.content : []);
+        const data = await eventsAPI.getByOrganizer(params);
+        setEvents(Array.isArray(data.content) ? data.content : []);
       } catch (err) {
         setError('Could not load your events.');
       } finally {
@@ -58,25 +51,12 @@ const OrganiserDashboard = () => {
     fetchEvents();
   }, [search]);
 
-  const buildAuthHeaders = () => {
-    const token = localStorage.getItem('eventora_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
-
   const predictEvent = async (eventId) => {
     setMlLoading(true);
     setDialogProps({ isOpen: false, message: '' });
     try {
-      const headers = buildAuthHeaders();
-      const resp = await axios.get(`http://localhost:8080/api/ml/predict/event/${eventId}`, {
-        headers,
-        validateStatus: (s) => s >= 200 && s < 500,
-      });
-      if (resp.status >= 200 && resp.status < 400) {
-        setDialogProps({ isOpen: true, message: JSON.stringify(resp.data, null, 2) });
-      } else {
-        setDialogProps({ isOpen: true, message: `Prediction failed: ${resp.status} ${resp.data || ''}` });
-      }
+      const data = await mlAPI.predictEvent(eventId);
+      setDialogProps({ isOpen: true, message: JSON.stringify(data, null, 2) });
     } catch (err) {
       console.error('Predict error', err);
       setDialogProps({ isOpen: true, message: err?.response?.data || err?.message || 'Prediction error' });
@@ -89,10 +69,9 @@ const OrganiserDashboard = () => {
     setMlLoading(true);
     setDialogProps({ isOpen: false, message: '' });
     try {
-      const headers = buildAuthHeaders();
-      const resp = await axios.get(`http://localhost:8080/api/ml/prediction/latest/${eventId}`, { headers, validateStatus: (s) => s >= 200 && s < 500 });
-      if (resp.status === 200) {
-        setDialogProps({ isOpen: true, message: JSON.stringify(resp.data, null, 2) });
+      const data = await mlAPI.getLatestPrediction(eventId);
+      if (data) {
+        setDialogProps({ isOpen: true, message: JSON.stringify(data, null, 2) });
       } else {
         setDialogProps({ isOpen: true, message: 'No latest prediction available.' });
       }
@@ -108,9 +87,8 @@ const OrganiserDashboard = () => {
     setMlLoading(true);
     setDialogProps({ isOpen: false, message: '' });
     try {
-      const headers = buildAuthHeaders();
-      const resp = await axios.get(`http://localhost:8080/api/ml/prediction/history/${eventId}`, { headers, validateStatus: (s) => s >= 200 && s < 500 });
-      setDialogProps({ isOpen: true, message: JSON.stringify(resp.data, null, 2) });
+      const data = await mlAPI.getPredictionHistory(eventId);
+      setDialogProps({ isOpen: true, message: JSON.stringify(data, null, 2) });
     } catch (err) {
       console.error('History error', err);
       setDialogProps({ isOpen: true, message: err?.response?.data || err?.message || 'Error fetching prediction history' });
@@ -123,9 +101,8 @@ const OrganiserDashboard = () => {
     setMlLoading(true);
     setDialogProps({ isOpen: false, message: '' });
     try {
-      const headers = buildAuthHeaders();
-      const resp = await axios.get('http://localhost:8080/api/ml/health', { headers, validateStatus: (s) => s >= 200 && s < 500 });
-      setDialogProps({ isOpen: true, message: JSON.stringify(resp.data, null, 2) });
+      const data = await mlAPI.checkHealth();
+      setDialogProps({ isOpen: true, message: JSON.stringify(data, null, 2) });
     } catch (err) {
       console.error('ML health error', err);
       setDialogProps({ isOpen: true, message: err?.message || 'Error checking ML health' });
@@ -138,9 +115,8 @@ const OrganiserDashboard = () => {
     setMlLoading(true);
     setDialogProps({ isOpen: false, message: '' });
     try {
-      const headers = buildAuthHeaders();
-      const resp = await axios.get('http://localhost:8080/api/ml/stats', { headers, validateStatus: (s) => s >= 200 && s < 500 });
-      setDialogProps({ isOpen: true, message: JSON.stringify(resp.data, null, 2) });
+      const data = await mlAPI.getStats();
+      setDialogProps({ isOpen: true, message: JSON.stringify(data, null, 2) });
     } catch (err) {
       console.error('ML stats error', err);
       setDialogProps({ isOpen: true, message: err?.message || 'Error fetching ML stats' });
@@ -155,7 +131,7 @@ const OrganiserDashboard = () => {
     navigate('/home');
   };
   const handleLogout = () => {
-    localStorage.removeItem('eventora_token');
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     setIsProfileMenuOpen(false);
     navigate('/home');
     window.location.reload();

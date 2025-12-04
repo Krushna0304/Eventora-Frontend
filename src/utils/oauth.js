@@ -1,7 +1,12 @@
-const GOOGLE_CLIENT_ID = "631122116715-qrjgivvn1d0bt2q88f69a7arnfln7jcd.apps.googleusercontent.com";
-const GITHUB_CLIENT_ID = "YOUR_GITHUB_CLIENT_ID";
-const LINKEDIN_CLIENT_ID = "YOUR_LINKEDIN_CLIENT_ID";
-const FRONTEND_URL = "http://localhost:5173";
+/**
+ * OAuth utility functions for social authentication
+ */
+
+// OAuth client IDs from environment variables
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "631122116715-qrjgivvn1d0bt2q88f69a7arnfln7jcd.apps.googleusercontent.com";
+const GITHUB_CLIENT_ID = import.meta.env.VITE_GITHUB_CLIENT_ID || "YOUR_GITHUB_CLIENT_ID";
+const LINKEDIN_CLIENT_ID = import.meta.env.VITE_LINKEDIN_CLIENT_ID || "YOUR_LINKEDIN_CLIENT_ID";
+const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL || "http://localhost:5173";
 
 export const initiateGoogleLogin = () => {
   const redirectUri = `${FRONTEND_URL}/auth/google/callback`;

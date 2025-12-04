@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import CreateEventCard from './CreateEventCard';
+import { eventsAPI } from '../services/api';
+import { STORAGE_KEYS } from '../config/constants';
 
 const EditEventWrapper = () => {
   const { id } = useParams();
@@ -13,19 +14,14 @@ const EditEventWrapper = () => {
   useEffect(() => {
     const fetchEvent = async () => {
       try {
-        const token = localStorage.getItem('eventora_token');
+        const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
         if (!token) {
           navigate('/login');
           return;
         }
 
-        const resp = await axios.get(`http://localhost:8080/public/api/events/getById`, {
-          params: { eventId: id },
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
-        
-        setEvent(resp.data);
+        const data = await eventsAPI.getById(id);
+        setEvent(data);
       } catch (err) {
         console.error('Error fetching event:', err);
         setError(err?.response?.data?.message || 'Failed to load event');

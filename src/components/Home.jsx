@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import EventCard from './EventCard';
 import Filters from './Filters';
 import ProfileMenu from './ProfileMenu';
+import { eventsAPI, authAPI, registrationsAPI } from '../services/api';
+import { STORAGE_KEYS, PAGINATION } from '../config/constants';
 import './Home.css';
-
-const EVENTS_ENDPOINT = 'http://localhost:8080/public/api/events/getByFilter';
 
 const Home = () => {
   const [events, setEvents] = useState([]);
@@ -17,7 +16,7 @@ const Home = () => {
   const [loading, setLoading] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState('');
-  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('eventora_token'));
+  const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN));
   const [userInfo, setUserInfo] = useState(null);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -26,7 +25,7 @@ const Home = () => {
   // update isLoggedIn if localStorage changes (e.g., login/logout in another tab)
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === 'eventora_token') {
+      if (e.key === STORAGE_KEYS.AUTH_TOKEN) {
         const newToken = e.newValue;
         setIsLoggedIn(!!newToken);
         if (!newToken) {
@@ -41,15 +40,12 @@ const Home = () => {
   // Fetch user info when logged in
   useEffect(() => {
     const fetchUserInfo = async () => {
-      const token = localStorage.getItem('eventora_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       if (!token) return;
 
       try {
-        const response = await axios.get('http://localhost:8080/public/api/getUserInfo', {
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
-        setUserInfo(response.data);
+        const data = await authAPI.getUserInfo();
+        setUserInfo(data);
       } catch (err) {
         console.error('Error fetching user info:', err?.message ?? err);
       }
@@ -88,20 +84,11 @@ const Home = () => {
           eventName: search.trim(),
           organizerName: organizerSearch.trim(),
           isMyEventList: isMyEventList,
-          page: 0, // You can make this dynamic if you add pagination controls
-          size: 10 // Or use a state variable for page size
+          page: PAGINATION.DEFAULT_PAGE,
+          size: PAGINATION.DEFAULT_SIZE,
         };
 
-        const token = localStorage.getItem('eventora_token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
-
-        const response = await axios.get(`http://localhost:8080/public/api/events/getByNameAndOrganizer`, {
-          params,
-          headers,
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
-
-        const data = response.data;
+        const data = await eventsAPI.getByNameAndOrganizer(params);
         if (Array.isArray(data.content)) {
           setFilteredEvents(data.content);
         } else {
@@ -125,11 +112,8 @@ const Home = () => {
     setLoading(true);
     setError('');
     try {
-      const response = await axios.post(EVENTS_ENDPOINT, filterPayload, {
-        validateStatus: (status) => status >= 200 && status < 400,
-      });
-
-      const data = response.data;
+      const data = await eventsAPI.getByFilter(filterPayload);
+      
       if (Array.isArray(data)) {
         setEvents(data);
         setFilteredEvents(data);
@@ -141,28 +125,6 @@ const Home = () => {
         setFilteredEvents([]);
       }
     } catch (err) {
-      const resp = err?.response;
-      if (resp && Array.isArray(resp.data)) {
-        setEvents(resp.data);
-        setFilteredEvents(resp.data);
-        return;
-      }
-
-      const status = resp?.status;
-      const xhr = err?.request;
-      if (status === 302 && xhr && xhr.responseText) {
-        try {
-          const parsed = JSON.parse(xhr.responseText);
-          if (Array.isArray(parsed)) {
-            setEvents(parsed);
-            setFilteredEvents(parsed);
-            return;
-          }
-        } catch (parseErr) {
-          console.warn('Failed to parse 302 responseText as JSON', parseErr);
-        }
-      }
-
       console.error('Error fetching events:', err?.message || err);
       let serverMsg = err?.response?.data?.message ?? err?.response?.data ?? err?.message ?? 'Could not load events.';
       if (typeof serverMsg === 'object') {
@@ -172,7 +134,6 @@ const Home = () => {
           serverMsg = String(serverMsg);
         }
       }
-
       setError(serverMsg);
     } finally {
       setLoading(false);
@@ -188,7 +149,7 @@ const Home = () => {
   };
 
   const handleMyEvents = async () => {
-    const token = localStorage.getItem('eventora_token');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     if (!token) {
       setError('You must be logged in to view your events.');
       return;
@@ -197,12 +158,8 @@ const Home = () => {
     setLoading(true);
     setError('');
     try {
-      const resp = await axios.get('http://localhost:8080/api/registrations/getMyEvents', {
-        headers: { Authorization: `Bearer ${token}` },
-        validateStatus: (s) => s >= 200 && s < 400,
-      });
-
-      const data = resp.data;
+      const data = await registrationsAPI.getMyEvents();
+      
       if (Array.isArray(data)) {
         setEvents(data);
         setFilteredEvents(data);
@@ -231,7 +188,7 @@ const Home = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('eventora_token');
+    localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
     setIsLoggedIn(false);
     setUserInfo(null);
     setIsProfileMenuOpen(false);

@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './EventDetailCard.css';
 import './OrganizerEventDetailCard.css';
 import Dialog from './Dialog';
-
-const BASE = 'http://localhost:8080/public/api/events';
+import { eventsAPI } from '../services/api';
+import { STORAGE_KEYS } from '../config/constants';
 
 const OrganizerEventDetailCard = () => {
   const { id } = useParams();
@@ -25,20 +24,14 @@ const OrganizerEventDetailCard = () => {
     setLoading(true);
     setError('');
     try {
-      const token = localStorage.getItem('eventora_token');
+      const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
       if (!token) {
         navigate('/login');
         return;
       }
       
-      const config = {
-        params: { eventId },
-        headers: { Authorization: `Bearer ${token}` },
-        validateStatus: (s) => s >= 200 && s < 400
-      };
-      
-      const resp = await axios.get(`${BASE}/getById`, config);
-      setEvent(resp.data);
+      const data = await eventsAPI.getById(eventId);
+      setEvent(data);
     } catch (err) {
       console.error('Error loading event detail:', err?.message ?? err);
       const serverMsg = err?.response?.data?.message ?? err?.response?.data ?? err?.message ?? 'Could not load event.';
@@ -51,15 +44,7 @@ const OrganizerEventDetailCard = () => {
   const handleSchedule = async () => {
     setProcessing(true);
     try {
-      const token = localStorage.getItem('eventora_token');
-      await axios.put(
-        `${BASE}/schedule/${id}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        }
-      );
+      await eventsAPI.schedule(id);
       await fetchEvent(id);
       setDialogProps({
         isOpen: true,
@@ -79,15 +64,7 @@ const OrganizerEventDetailCard = () => {
   const handleCancel = async () => {
     setProcessing(true);
     try {
-      const token = localStorage.getItem('eventora_token');
-      await axios.put(
-        `${BASE}/cancel/${id}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        }
-      );
+      await eventsAPI.cancel(id);
       await fetchEvent(id);
       setDialogProps({
         isOpen: true,

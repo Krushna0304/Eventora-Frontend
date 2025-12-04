@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import './Login.css';
 import { Button } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import { initiateGoogleLogin, initiateGithubLogin, initiateLinkedInLogin } from '../utils/oauth';
+import { authAPI } from '../services/api';
+import { STORAGE_KEYS, OAUTH_PROVIDERS } from '../config/constants';
 
 const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
@@ -33,34 +34,30 @@ const Login = () => {
         const provider = pathMatch[1]; // Extract provider name (google, github, linkedin)
 
         // Prevent multiple calls by checking if already processing
-        const isProcessing = sessionStorage.getItem('oauth_processing');
+        const isProcessing = sessionStorage.getItem(STORAGE_KEYS.OAUTH_PROCESSING);
         if (isProcessing === 'true') {
             console.log('OAuth already processing, skipping...');
             return;
         }
 
         const handleOAuthCallback = async () => {
-            sessionStorage.setItem('oauth_processing', 'true');
+            sessionStorage.setItem(STORAGE_KEYS.OAUTH_PROCESSING, 'true');
             setLoading(true);
             setError('');
 
             try {
                 // Send code to backend - endpoint should match provider name
-                const response = await axios.get(`http://localhost:8080/auth/${provider}/code`, {
-                    params: { code },
-                    timeout: 10000 // 10 second timeout
-                });
-
-                const token = response.data?.token;
+                const response = await authAPI.oauthCallback(provider, code);
+                const token = response?.token;
                 
                 if (token) {
-                    localStorage.setItem('eventora_token', token);
-                    sessionStorage.removeItem('oauth_processing');
+                    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
+                    sessionStorage.removeItem(STORAGE_KEYS.OAUTH_PROCESSING);
                     // Clear the OAuth params from URL before navigating
                     navigate('/home', { replace: true });
                 } else {
                     setError('Authentication failed. No token received.');
-                    sessionStorage.removeItem('oauth_processing');
+                    sessionStorage.removeItem(STORAGE_KEYS.OAUTH_PROCESSING);
                     // Navigate back to login after 3 seconds
                     setTimeout(() => navigate('/login', { replace: true }), 3000);
                 }
@@ -70,7 +67,7 @@ const Login = () => {
                                    err.message || 
                                    'OAuth authentication failed.';
                 setError(errorMessage);
-                sessionStorage.removeItem('oauth_processing');
+                sessionStorage.removeItem(STORAGE_KEYS.OAUTH_PROCESSING);
                 // Navigate back to login after 3 seconds
                 setTimeout(() => navigate('/login', { replace: true }), 3000);
             } finally {
@@ -96,14 +93,13 @@ const Login = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8080/public/api/login', formData);
-
-            if (response.status === 202) {
-                const token = response.data?.token;
-                if (token) {
-                    localStorage.setItem('eventora_token', token);
-                }
+            const response = await authAPI.login(formData);
+            const token = response?.token;
+            if (token) {
+                localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
                 navigate('/home');
+            } else {
+                setError('Login failed. No token received.');
             }
         } catch (err) {
             console.error('Login error:', err);

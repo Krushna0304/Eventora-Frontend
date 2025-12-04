@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import './Register.css';
 import { Button, Input, InputAdornment, IconButton } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
@@ -8,6 +7,8 @@ import GoogleIcon from '@mui/icons-material/Google';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import { initiateGoogleLogin, initiateGithubLogin, initiateLinkedInLogin } from '../utils/oauth';
+import { authAPI } from '../services/api';
+import { STORAGE_KEYS } from '../config/constants';
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -40,14 +41,11 @@ const Register = () => {
             setError('');
 
             try {
-                const response = await axios.get(`http://localhost:8080/auth/${provider}/code`, {
-                    params: { code }
-                });
-
-                const token = response.data?.token;
+                const response = await authAPI.oauthCallback(provider, code);
+                const token = response?.token;
 
                 if (token) {
-                    localStorage.setItem('eventora_token', token);
+                    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token);
                     navigate('/home');
                 } else {
                     setError('Authentication failed. No token received.');
@@ -76,11 +74,8 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const response = await axios.post('http://localhost:8080/public/api/create-user', formData);
-
-            if (response.status === 201) {
-                navigate('/login');
-            }
+            await authAPI.register(formData);
+            navigate('/login');
         } catch (err) {
             console.error('Registration error:', err);
             let msg = err?.response?.data?.message ?? '';

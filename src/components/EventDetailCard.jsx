@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import './EventDetailCard.css';
 import Dialog from './Dialog';
-
-const BASE = 'http://localhost:8080/public/api/events';
-const REGISTRATION_BASE = 'http://localhost:8080/api/registrations';
+import { eventsAPI, registrationsAPI } from '../services/api';
+import { STORAGE_KEYS } from '../config/constants';
 
 const EventDetailCard = () => {
   const { id } = useParams();
@@ -25,19 +23,7 @@ const EventDetailCard = () => {
     setLoading(true);
     setError('');
     try {
-      // Get token if it exists
-      const token = localStorage.getItem('eventora_token');
-      
-      // Build request config with optional auth header
-      const config = {
-        params: { eventId },
-        validateStatus: (s) => s >= 200 && s < 400,
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined
-      };
-      
-      const resp = await axios.get(`${BASE}/getById`, config);
-      // server may return the DTO directly
-      const data = resp.data;
+      const data = await eventsAPI.getById(eventId);
       setEvent(data);
     } catch (err) {
       console.error('Error loading event detail:', err?.message ?? err);
@@ -56,7 +42,7 @@ const EventDetailCard = () => {
   };
 
   const handleRegistration = async () => {
-    const token = localStorage.getItem('eventora_token');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     if (!token) {
       window.location.href = '/login';
       return;
@@ -72,20 +58,13 @@ const EventDetailCard = () => {
 
     setRegistering(true);
     try {
-      const response = await axios.post(
-        `${REGISTRATION_BASE}/register-event/${id}`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        }
-      );
+      const response = await registrationsAPI.register(id);
       
       // Refresh event details to get updated registration status
       await fetchEvent(id);
       setDialogProps({
         isOpen: true,
-        message: response.data || 'Successfully registered for the event!'
+        message: response || 'Successfully registered for the event!'
       });
     } catch (err) {
       console.error('Registration error:', err?.message ?? err);
@@ -100,24 +79,18 @@ const EventDetailCard = () => {
   };
 
   const handleUnregister = async () => {
-    const token = localStorage.getItem('eventora_token');
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
     if (!token) return;
 
     setRegistering(true);
     try {
-      const response = await axios.delete(
-        `${REGISTRATION_BASE}/unregister-event/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          validateStatus: (s) => s >= 200 && s < 400,
-        }
-      );
+      const response = await registrationsAPI.cancel(id);
       
       // Refresh event details to get updated registration status
       await fetchEvent(id);
       setDialogProps({
         isOpen: true,
-        message: response.data || 'Successfully cancelled registration'
+        message: response || 'Successfully cancelled registration'
       });
     } catch (err) {
       console.error('Unregistration error:', err?.message ?? err);

@@ -1,8 +1,11 @@
 {
-  "name": "my-react-app",
+  "name": "eventora-frontend",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "Eventora - Professional event management platform frontend",
   "type": "module",
+  "author": "",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

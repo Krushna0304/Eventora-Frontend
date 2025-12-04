@@ -1,10 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import './CreateEventCard.css';
 import { useNavigate } from 'react-router-dom';
-
-const CREATE_ENDPOINT = 'http://localhost:8080/public/api/events/create';
-const UPDATE_ENDPOINT = 'http://localhost:8080/public/api/events/update';
+import { eventsAPI } from '../services/api';
 
 const CreateEventCard = ({ event }) => {
   const navigate = useNavigate();
@@ -75,30 +72,17 @@ const CreateEventCard = ({ event }) => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('eventora_token');
-      const headers = {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      };
-
-      let resp;
+      let resultEvent;
       if (event?.id) {
         // Update existing event
-        resp = await axios.post(`${UPDATE_ENDPOINT}/${event.id}`, payload, {
-          headers,
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
+        resultEvent = await eventsAPI.update(event.id, payload);
         setSuccessMessage('Event updated successfully');
       } else {
         // Create new event
-        resp = await axios.post(CREATE_ENDPOINT, payload, {
-          headers,
-          validateStatus: (s) => s >= 200 && s < 400,
-        });
+        resultEvent = await eventsAPI.create(payload);
         setSuccessMessage('Event created successfully');
       }
       
-      const resultEvent = resp.data;
       if (resultEvent?.id) navigate(`/organiser/events/${resultEvent.id}`);
       else navigate('/organiser');
     } catch (err) {
